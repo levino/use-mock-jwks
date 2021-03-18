@@ -1,30 +1,37 @@
-import express, {ErrorRequestHandler} from 'express'
-import jwt from 'express-jwt'
-import jwksRsa from 'jwks-rsa'
+import express, { ErrorRequestHandler } from "express";
+import jwt from "express-jwt";
+import jwksRsa from "jwks-rsa";
 
 interface Config {
-    jwksUri: string
+  jwksUri: string;
 }
 
-export const createApp: (config: Config) => express.Application = ({jwksUri}) => {
-    const app = express()
-    app.use(
-        jwt({
-            secret: jwksRsa.expressJwtSecret({
-                cache: false,
-                jwksUri,
-            }),
-            audience: 'private',
-            issuer: 'master',
-            algorithms: ['RS256'],
-        })
+export const createApp: (config: Config) => express.Application = ({
+  jwksUri,
+}) =>
+  express()
+    .use(
+      jwt({
+        secret: jwksRsa.expressJwtSecret({
+          cache: false,
+          jwksUri,
+        }),
+        audience: "urn:my-resource-server",
+        issuer: "https://my-authz-server/",
+        algorithms: ["RS256"],
+      })
     )
-    app.get('/', (_, res) => {
-        res.sendStatus(200)
+    .get("/", (_, res) => {
+      res.sendStatus(200);
     })
-    app.use((error,_, __,next): ErrorRequestHandler => {
-        console.log(error)
-        next(error)
-    })
-    return app
-}
+    .use(
+      (
+        error: Error,
+        _: express.Request,
+        __: express.Response,
+        next: express.NextFunction
+      ) => {
+        console.log(error);
+        next(error);
+      }
+    );
