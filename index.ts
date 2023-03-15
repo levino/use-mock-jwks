@@ -1,5 +1,5 @@
 import express, {ErrorRequestHandler} from 'express'
-import jwt from 'express-jwt'
+import { expressjwt as jwt } from 'express-jwt'
 import jwksRsa from 'jwks-rsa'
 
 interface Config {
@@ -13,7 +13,7 @@ export const createApp: (config: Config) => express.Application = ({jwksUri}) =>
             secret: jwksRsa.expressJwtSecret({
                 cache: false,
                 jwksUri,
-            }),
+            }) as any,
             audience: 'private',
             issuer: 'master',
             algorithms: ['RS256'],
@@ -22,9 +22,9 @@ export const createApp: (config: Config) => express.Application = ({jwksUri}) =>
     app.get('/', (_, res) => {
         res.sendStatus(200)
     })
-    app.use((error,_, __,next): ErrorRequestHandler => {
+    app.use(((error,_, __,next) => {
         console.log(error)
         next(error)
-    })
+    }) as ErrorRequestHandler)
     return app
 }
